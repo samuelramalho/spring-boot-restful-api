@@ -20,12 +20,15 @@ public class Traducao {
 	private String titulo;
 
 	private String poster;
+	
+	private Filme filme;
 
-	public Traducao(@NotEmpty String code, @NotEmpty String idioma, @NotEmpty String titulo) {
+	public Traducao(@NotEmpty String code, @NotEmpty String idioma, @NotEmpty String titulo, Filme filme) {
 		super();
 		this.code = code;
 		this.idioma = idioma;
 		this.titulo = titulo;
+		this.filme = filme;
 	}
 	
 }

@@ -1,6 +1,7 @@
 package br.com.rs.demo.api.domain;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import javax.validation.constraints.NotEmpty;
 
@@ -29,6 +30,8 @@ public class Filme {
 	private String genero;
 	
 	private LocalDateTime cadastradoEm = LocalDateTime.now();
+	
+	private List<Traducao> traducoes;
 	
 	public Filme(String titulo, int ano) {
 		super();
