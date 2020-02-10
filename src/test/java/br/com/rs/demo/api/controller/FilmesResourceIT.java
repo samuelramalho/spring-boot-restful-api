@@ -1,16 +1,14 @@
 package br.com.rs.demo.api.controller;
 
 import static br.com.rs.demo.api.util.TestUtils.buildURL;
+import static br.com.rs.demo.api.util.TestUtils.extractURIByRel;
 import static br.com.rs.demo.api.util.TestUtils.jsonFromFile;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.StringContains.containsString;
@@ -24,7 +22,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,11 +69,25 @@ public class FilmesResourceIT {
 		assertThat("Teste de HTTP Status falhou", response.getStatusCode(), anyOf(is(HttpStatus.OK), is(HttpStatus.PARTIAL_CONTENT)));
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
 		assertThat("Teste de Paging Header falhou", response.getHeaders(), allOf(hasKey(LINK), hasKey("Total-Elements")));
+		
+		HttpHeaders responseHeaders = response.getHeaders();
+		
+		String linkFirst = ENDPOINT_COLLECTION + "?page=0&size=5&sort=ano,desc";
+		String linkSelf = ENDPOINT_COLLECTION + "?page=0&size=5&sort=ano,desc";
+		String linkNext = ENDPOINT_COLLECTION + "?page=1&size=5&sort=ano,desc";
+		String linkLast = ENDPOINT_COLLECTION + "?page=2&size=5&sort=ano,desc";
+
+		String linkHeader = responseHeaders.get(LINK).get(0);
+		
+		assertThat("Teste de Paging First Link falhou",  extractURIByRel(linkHeader, "first"), containsString(linkFirst));
+		assertThat("Teste de Paging Self Link falhou", extractURIByRel(linkHeader, "self"), containsString(linkSelf));
+		assertThat("Teste de Paging Next Link falhou",  extractURIByRel(linkHeader, "next"), containsString(linkNext));
+		assertThat("Teste de Paging Last Link falhou",  extractURIByRel(linkHeader, "last"), containsString(linkLast));
+		
 		assertThat("Teste de Cache Header falhou", response.getHeaders(), allOf(hasKey(CACHE_CONTROL), hasKey(ETAG)));
 		assertThat("Teste de Response Body falhou", response.getBody(), allOf(
 				hasJsonPath("$.content", hasSize(greaterThan(0))),
-				hasJsonPath("$.content", hasProperty("titulo")), 
-				hasJsonPath("$.content", hasProperty("ano"))
+				hasJsonPath("$.content[*].titulo")
 		));
 	}
 
@@ -98,19 +109,25 @@ public class FilmesResourceIT {
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(),
 				"Teste de Content-Type falhou");
 
-		String linkPrev = ENDPOINT_COLLECTION + "?page=0&size=3>;rel=\"prev\"";
-		String linkSelf = ENDPOINT_COLLECTION + "?page=1&size=3>;rel=\"self\"";
+		HttpHeaders responseHeaders = response.getHeaders();
 
-		assertThat("Teste de Paging Header falhou", response.getHeaders(), allOf(
+		assertThat("Teste de Paging Header falhou", responseHeaders, allOf(
 				hasKey(LINK), 
-				hasEntry(LINK, containsString(linkSelf)), 
-				hasEntry(LINK, containsString(linkPrev)), hasKey("Total-Elements")
+				hasKey("Total-Elements")
 		));
+		
+		String linkPrev = ENDPOINT_COLLECTION + "?page=0&size=3";
+		String linkSelf = ENDPOINT_COLLECTION + "?page=1&size=3";
+
+		String linkHeader = responseHeaders.get(LINK).get(0);
+
+		assertThat("Teste de Paging Prev Link falhou",  extractURIByRel(linkHeader, "prev"), containsString(linkPrev));
+		assertThat("Teste de Paging Self Link falhou", extractURIByRel(linkHeader, "self"), containsString(linkSelf));
+		
 		assertThat("Teste de Cache Header falhou", response.getHeaders(), allOf(hasKey(CACHE_CONTROL), hasKey(ETAG)));
 		assertThat("Teste de Response Body falhou", response.getBody(), allOf(
 				hasJsonPath("$.content", hasSize(3)),
-				hasJsonPath("$.content", hasProperty("titulo")), 
-				hasJsonPath("$.content", hasProperty("ano"))
+				hasJsonPath("$.content[*].titulo")
 		));
 	}
 
@@ -129,7 +146,7 @@ public class FilmesResourceIT {
 
 		assertEquals(HttpStatus.OK, response.getStatusCode(), "Teste de HTTP Status Code falhou");
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
-		assertThat("Teste de Response Body falhou", response.getBody(), hasJsonPath("$.content", hasSize(1)));
+		assertThat("Teste de Response Body falhou", response.getBody(), hasJsonPath("$.content", hasSize(2)));
 	}
 
 	@Test
@@ -147,12 +164,10 @@ public class FilmesResourceIT {
 
 		assertThat("Teste de HTTP Status Code falhou", response.getStatusCode(), anyOf(is(HttpStatus.OK), is(HttpStatus.PARTIAL_CONTENT)));
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
-
-		final JSONArray expected = new JSONArray(jsonFromFile("classpath:json/filme/response-colecao-ordenada-por-titulo.json"));
-
-		JSONArray actual = new JSONObject(response.getBody()).getJSONArray("content");
-
-		JSONAssert.assertEquals("Teste de Response Body falhou", expected, actual, JSONCompareMode.LENIENT);
+		assertThat("Teste de Response Body falhou", response.getBody(), allOf(
+				hasJsonPath("$.content[0].titulo", is("Annie Hall")),
+				hasJsonPath("$.content[4].titulo", is("Joker"))
+		));
 	}
 
 	@Test
@@ -164,13 +179,13 @@ public class FilmesResourceIT {
 		final HttpEntity<String> entity = new HttpEntity<String>(null, headers);
 
 		final Map<String, String> param = new HashMap<String, String>();
-		param.put("ano", "2000");
+		param.put("ano", "2030");
 
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_COLLECTION + "?ano={ano}"), HttpMethod.GET, entity, String.class, param);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode(), "Teste de HTTP Status Code falhou");
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
-		assertThat("Teste de Response Body falhou", response.getBody(), hasJsonPath("$.content", emptyArray()));
+		assertThat("Teste de Response Body falhou", response.getBody(),  hasJsonPath("$", hasSize(0)));
 	}
 
 	@Test
@@ -193,8 +208,9 @@ public class FilmesResourceIT {
 		JSONAssert.assertEquals("Teste de Response Body falhou", expected, response.getBody(), JSONCompareMode.LENIENT);
 		
 		assertThat("Teste de HATEOAS falhou", response.getBody(), allOf(
-				hasJsonPath("$._links.self.href", endsWith("/filmes/1")),
-				hasJsonPath("$._links.filmes.href", endsWith("/filmes/"))
+				hasJsonPath("$.links[0].rel", is("self")),
+				hasJsonPath("$.links[0].href", endsWith("/filmes/1")),
+				hasJsonPath("$.links[1].rel", is("filmes"))
 		));
 	}
 
