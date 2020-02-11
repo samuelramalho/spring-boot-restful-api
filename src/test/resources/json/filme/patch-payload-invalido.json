@@ -1,4 +1,6 @@
-{
-	"titulo": null,
-	"ano" : 2018
-}
+[
+  {
+    "op": "remove",
+    "path": "/titulo"
+  }
+]

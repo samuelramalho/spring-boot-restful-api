@@ -20,6 +20,7 @@ import lombok.Setter;
 @NoArgsConstructor @Getter @EqualsAndHashCode(exclude = {"titulo", "ano", "poster", "genero", "cadastradoEm"})
 public class Filme {
 
+	//@Setter
 	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	

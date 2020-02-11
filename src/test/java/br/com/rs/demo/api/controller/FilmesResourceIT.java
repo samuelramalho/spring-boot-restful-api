@@ -41,6 +41,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.test.context.ActiveProfiles;
 
 import br.com.rs.demo.api.DemoApplication;
+import br.com.rs.demo.api.http.PatchMediaType;
 
 @SpringBootTest(classes = DemoApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -197,19 +198,19 @@ public class FilmesResourceIT {
 		final HttpEntity<String> entity = new HttpEntity<String>(null, headers);
 
 		final Map<String, String> param = new HashMap<String, String>();
-		param.put("id", "1");
+		param.put("id", "2");
 
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.GET, entity, String.class, param);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode(), "Teste de HTTP Status Code falhou");
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
 		
-		final String expected = jsonFromFile("classpath:json/filme/response-resource-id-1.json");
+		final String expected = jsonFromFile("classpath:json/filme/response-resource-id-2.json");
 		JSONAssert.assertEquals("Teste de Response Body falhou", expected, response.getBody(), JSONCompareMode.LENIENT);
 		
 		assertThat("Teste de HATEOAS falhou", response.getBody(), allOf(
 				hasJsonPath("$.links[0].rel", is("self")),
-				hasJsonPath("$.links[0].href", endsWith("/filmes/1")),
+				hasJsonPath("$.links[0].href", endsWith("/filmes/2")),
 				hasJsonPath("$.links[1].rel", is("filmes"))
 		));
 	}
@@ -271,23 +272,74 @@ public class FilmesResourceIT {
 
 		assertThat("Teste de Response Body falhou", response.getBody(), allOf(
 				hasJsonPath("$.status", is(400)), 
-				hasJsonPath("$.erro"), 
+				hasJsonPath("$.error"), 
+				hasJsonPath("$.timestamp")
+		));
+	}
+	
+	@Test
+	@DisplayName("Deve atualizar parcialmente um Filme com JSON Patch | HTTP Status 200")
+	public void patchResourceReturn200() throws Exception {
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", PatchMediaType.APPLICATION_JSON_PATCH_VALUE);
+
+		final String json = jsonFromFile("classpath:json/filme/patch-payload-valido.json");
+
+		final HttpEntity<String> entity = new HttpEntity<String>(json.toString(), headers);
+
+		final Map<String, String> param = new HashMap<String, String>();
+		param.put("id", "1");
+
+		restTemplate.getRestTemplate().setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.PATCH, entity, String.class, param);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode(), "Teste de HTTP Status Code falhou");
+		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
+		assertThat("Teste de Response Body falhou", response.getBody(), hasJsonPath("$.id", is(1)));
+
+		ResponseEntity<String> responseGet = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.GET, new HttpEntity<>(headers), String.class, param);
+
+		assertThat("Teste de persistência falhou", responseGet.getBody(), hasJsonPath("$.genero", is("aventura")));
+	}
+	
+	@Test
+	@DisplayName("Deve rejeitar uma atualização com JSON Patch payload inválido | HTTP Status 201")
+	public void patchResourceReturn400() throws Exception {
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", PatchMediaType.APPLICATION_JSON_PATCH_VALUE);
+
+		final String json = jsonFromFile("classpath:json/filme/patch-payload-invalido.json");
+
+		final HttpEntity<String> entity = new HttpEntity<String>(json, headers);
+
+		final Map<String, String> param = new HashMap<String, String>();
+		param.put("id", "1");
+
+		restTemplate.getRestTemplate().setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.PATCH, entity, String.class, param);
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(), "Teste de HTTP Status Code falhou");
+		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
+
+		assertThat("Teste de Response Body falhou", response.getBody(), allOf(
+				hasJsonPath("$.status", is(400)), 
+				hasJsonPath("$.error"), 
 				hasJsonPath("$.timestamp")
 		));
 	}
 
 	@Test
-	@DisplayName("Deve atualizar parcialmente um Filme | HTTP Status 200")
-	public void patchResourceReturn200() throws Exception {
+	@DisplayName("Deve atualizar parcialmente um Filme com Merge JSON | HTTP Status 200")
+	public void mergePatchResourceReturn200() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/merge-patch+json");
+		headers.add("Content-Type", PatchMediaType.APPLICATION_MERGE_PATCH_VALUE);
 
-		final JSONObject json = new JSONObject(jsonFromFile("classpath:json/filme/patch-payload-valido.json"));
+		final JSONObject json = new JSONObject(jsonFromFile("classpath:json/filme/patch-merge-payload-valido.json"));
 
 		final HttpEntity<String> entity = new HttpEntity<String>(json.toString(), headers);
 
 		final Map<String, String> param = new HashMap<String, String>();
-		param.put("id", "2");
+		param.put("id", "1");
 
 		restTemplate.getRestTemplate().setRequestFactory(new HttpComponentsClientHttpRequestFactory());
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.PATCH, entity, String.class, param);
@@ -298,21 +350,21 @@ public class FilmesResourceIT {
 
 		ResponseEntity<String> responseGet = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.GET, new HttpEntity<>(headers), String.class, param);
 
-		assertThat("Teste de persistência falhou", responseGet.getBody(), hasJsonPath("$.titulo", is(json.get("titulo"))));
+		assertThat("Teste de persistência falhou", responseGet.getBody(), hasJsonPath("$.genero", is(json.get("genero"))));
 	}
 
 	@Test
-	@DisplayName("Deve rejeitar uma atualização com payload inválido | HTTP Status 201")
-	public void pacthResourceReturn400() throws Exception {
+	@DisplayName("Deve rejeitar uma atualização com Merge JSON payload inválido | HTTP Status 201")
+	public void mergePatchResourceReturn400() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/merge-patch+json");
+		headers.add("Content-Type", PatchMediaType.APPLICATION_MERGE_PATCH_VALUE);
 
-		final String json = jsonFromFile("classpath:json/filme/patch-payload-invalido.json");
+		final String json = jsonFromFile("classpath:json/filme/patch-merge-payload-invalido.json");
 
 		final HttpEntity<String> entity = new HttpEntity<String>(json, headers);
 
 		final Map<String, String> param = new HashMap<String, String>();
-		param.put("id", "2");
+		param.put("id", "1");
 
 		restTemplate.getRestTemplate().setRequestFactory(new HttpComponentsClientHttpRequestFactory());
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.PATCH, entity, String.class, param);
@@ -322,7 +374,7 @@ public class FilmesResourceIT {
 
 		assertThat("Teste de Response Body falhou", response.getBody(), allOf(
 				hasJsonPath("$.status", is(400)), 
-				hasJsonPath("$.erro"), 
+				hasJsonPath("$.error"), 
 				hasJsonPath("$.timestamp")
 		));
 	}

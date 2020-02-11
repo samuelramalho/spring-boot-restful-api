@@ -26,8 +26,8 @@ public class FilmeService {
 		return repository.findById(id);
 	}
     
-    public Filme save(Filme article) {
-		return repository.save(article);
+    public Filme save(Filme filme) {
+		return repository.saveAndFlush(filme);
 	}
     
     public void deleteById(Long id) {
