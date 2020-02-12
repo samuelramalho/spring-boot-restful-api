@@ -256,7 +256,7 @@ public class FilmesResourceIT {
 	}
 
 	@Test
-	@DisplayName("Deve rejeitar um novo filme com payload inválido | HTTP Status 201")
+	@DisplayName("Deve rejeitar um novo filme com payload inválido | HTTP Status 422")
 	public void postResourceReturn400() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
@@ -267,12 +267,12 @@ public class FilmesResourceIT {
 
 		final ResponseEntity<String> response = restTemplate.postForEntity(buildURL(port, ENDPOINT_COLLECTION), entity, String.class);
 
-		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(), "Teste de HTTP Status Code falhou");
+		assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode(), "Teste de HTTP Status Code falhou");
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
 
 		assertThat("Teste de Response Body falhou", response.getBody(), allOf(
-				hasJsonPath("$.status", is(400)), 
-				hasJsonPath("$.error"), 
+				hasJsonPath("$.status", is(HttpStatus.UNPROCESSABLE_ENTITY.value())), 
+				hasJsonPath("$.errors"), 
 				hasJsonPath("$.timestamp")
 		));
 	}
@@ -303,7 +303,7 @@ public class FilmesResourceIT {
 	}
 	
 	@Test
-	@DisplayName("Deve rejeitar uma atualização com JSON Patch payload inválido | HTTP Status 201")
+	@DisplayName("Deve rejeitar uma atualização com JSON Patch payload inválido | HTTP Status 422")
 	public void patchResourceReturn400() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", PatchMediaType.APPLICATION_JSON_PATCH_VALUE);
@@ -318,12 +318,12 @@ public class FilmesResourceIT {
 		restTemplate.getRestTemplate().setRequestFactory(new HttpComponentsClientHttpRequestFactory());
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.PATCH, entity, String.class, param);
 
-		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(), "Teste de HTTP Status Code falhou");
-		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
+		assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode(), "Teste de HTTP Status Code falhou");
+		assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
 
 		assertThat("Teste de Response Body falhou", response.getBody(), allOf(
-				hasJsonPath("$.status", is(400)), 
-				hasJsonPath("$.error"), 
+				hasJsonPath("$.status", is(HttpStatus.UNPROCESSABLE_ENTITY.value())), 
+				hasJsonPath("$.errors"), 
 				hasJsonPath("$.timestamp")
 		));
 	}
@@ -369,12 +369,12 @@ public class FilmesResourceIT {
 		restTemplate.getRestTemplate().setRequestFactory(new HttpComponentsClientHttpRequestFactory());
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.PATCH, entity, String.class, param);
 
-		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(), "Teste de HTTP Status Code falhou");
-		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
+		assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode(), "Teste de HTTP Status Code falhou");
+		assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
 
 		assertThat("Teste de Response Body falhou", response.getBody(), allOf(
-				hasJsonPath("$.status", is(400)), 
-				hasJsonPath("$.error"), 
+				hasJsonPath("$.status", is(HttpStatus.UNPROCESSABLE_ENTITY.value())), 
+				hasJsonPath("$.errors"), 
 				hasJsonPath("$.timestamp")
 		));
 	}

@@ -104,17 +104,13 @@ public class FilmeController {
 	
 	@GetMapping(path="/{id}", produces=MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<EntityModel<FilmeDTO>> findOne(@PathVariable("id") final Long id) {
-		final Optional<Filme> filme = service.findById(id);
+		Filme entity = service.findById(id).orElseThrow(ResourceNotFoundException::new);
 
 		Link findOneLink = linkTo(methodOn(FilmeController.class).findOne(id)).withSelfRel();
 		Link findAllLink = linkTo(methodOn(FilmeController.class).findAll(null, null, null, null)).withRel("filmes");
 
-		if (filme.isPresent()) {
-			EntityModel<FilmeDTO> model = new EntityModel<>(modelMapper.map(filme.get(), FilmeDTO.class), findOneLink, findAllLink);
-			return ResponseEntity.ok().body(model);
-		} else {
-			return ResponseEntity.notFound().build();
-		}
+		EntityModel<FilmeDTO> model = new EntityModel<>(modelMapper.map(entity, FilmeDTO.class), findOneLink, findAllLink);
+		return ResponseEntity.ok().body(model);
 
 	}
 	
