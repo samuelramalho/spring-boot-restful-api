@@ -68,7 +68,7 @@
 		    <groupId>org.apache.johnzon</groupId>
 		    <artifactId>johnzon-core</artifactId>
 		</dependency>
-		
+
 		<dependency>
 		    <groupId>com.fasterxml.jackson.datatype</groupId>
 		    <artifactId>jackson-datatype-jsr353</artifactId>
