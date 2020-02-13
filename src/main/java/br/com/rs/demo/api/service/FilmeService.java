@@ -33,4 +33,8 @@ public class FilmeService {
     public void deleteById(Long id) {
     	repository.deleteById(id);
 	}
+    
+    public boolean filmeExists(Long id) {
+    	return repository.existsById(id);
+    }
 }

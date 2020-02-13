@@ -5,10 +5,8 @@ import static br.com.rs.demo.api.util.TestUtils.jsonFromFile;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,10 +30,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 
 import br.com.rs.demo.api.DemoApplication;
 
 @SpringBootTest(classes = DemoApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Sql({"/sql/traducao/delete.sql","/sql/traducao/load_data.sql"})
 @ActiveProfiles("test")
 @DisplayName("Traduções | testes dos endpoints")
 public class TraducoesResourceIT {
@@ -50,7 +50,7 @@ public class TraducoesResourceIT {
 	private TestRestTemplate restTemplate;
 
 	@Test
-	@DisplayName("Deve retornar uma lista de traduções | HTTP Status 200 ou 206")
+	@DisplayName("Deve retornar uma lista de traduções | HTTP Status 200")
 	public void lista() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
@@ -66,8 +66,8 @@ public class TraducoesResourceIT {
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
 		assertThat("Teste de Response Body falhou", response.getBody(), allOf(
 				hasJsonPath("$", hasSize(greaterThan(0))),
-				hasJsonPath("$", hasProperty("codigo")), 
-				hasJsonPath("$", hasProperty("idioma"))
+				hasJsonPath("$[*].codigo"), 
+				hasJsonPath("$[*].idioma")
 		));
 	}
 
@@ -80,13 +80,13 @@ public class TraducoesResourceIT {
 		final HttpEntity<String> entity = new HttpEntity<String>(null, headers);
 
 		final Map<String, String> param = new HashMap<String, String>();
-		param.put("id", "10");
+		param.put("id", "2");
 
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_COLLECTION), HttpMethod.GET, entity, String.class, param);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode(), "Teste de HTTP Status Code falhou");
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
-		assertThat("Teste de Response Body falhou", response.getBody(), hasJsonPath("$", emptyArray()));
+		assertThat("Teste de Response Body falhou", response.getBody(), hasJsonPath("$", hasSize(0)));
 	}
 
 	@Test
@@ -97,7 +97,7 @@ public class TraducoesResourceIT {
 		final HttpEntity<String> entity = new HttpEntity<String>(null, headers);
 
 		final Map<String, String> param = new HashMap<String, String>();
-		param.put("id", "1");
+		param.put("id", "3");
 		param.put("code", "pt-br");
 
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.GET, entity, String.class, param);
@@ -138,7 +138,7 @@ public class TraducoesResourceIT {
 		final HttpEntity<String> entity = new HttpEntity<String>(json, headers);
 		
 		final Map<String, String> param = new HashMap<String, String>();
-		param.put("id", "1");
+		param.put("id", "2");
 		param.put("code", "es");
 
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.PUT, entity, String.class, param);
@@ -175,8 +175,6 @@ public class TraducoesResourceIT {
 		assertEquals(HttpStatus.OK, response.getStatusCode(), "Teste de HTTP Status Code falhou");
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
 
-		assertThat("Teste de Location HTTP Header falhou", response.getHeaders(), hasKey("Location"));
-
 		JSONAssert.assertEquals("Teste de Response Body falhou", json, response.getBody(), JSONCompareMode.LENIENT);
 
 		ResponseEntity<String> responseGet = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.GET, new HttpEntity<>(headers), String.class, param);
@@ -185,7 +183,7 @@ public class TraducoesResourceIT {
 	}
 
 	@Test
-	@DisplayName("Deve rejeitar uma nova tradução com payload inválido | HTTP Status 400")
+	@DisplayName("Deve rejeitar uma nova tradução com payload inválido | HTTP Status 422")
 	public void puttResourceReturn400() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
@@ -201,12 +199,12 @@ public class TraducoesResourceIT {
 
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.PUT, entity, String.class, param);
 
-		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(), "Teste de HTTP Status Code falhou");
+		assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode(), "Teste de HTTP Status Code falhou");
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
 
 		assertThat("Teste de Response Body falhou", response.getBody(), allOf(
-				hasJsonPath("$.status", is(400)), 
-				hasJsonPath("$.erro"), 
+				hasJsonPath("$.status", is(HttpStatus.UNPROCESSABLE_ENTITY.value())), 
+				hasJsonPath("$.errors"), 
 				hasJsonPath("$.timestamp")
 		));
 	}
@@ -219,7 +217,7 @@ public class TraducoesResourceIT {
 
 		final Map<String, String> param = new HashMap<String, String>();
 		param.put("id", "1");
-		param.put("code", "es");
+		param.put("code", "pt-br");
 
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.DELETE, HttpEntity.EMPTY, String.class, param);
 

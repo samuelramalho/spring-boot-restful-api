@@ -11,7 +11,7 @@ import lombok.Setter;
 @Getter @Setter
 public class TraducaoDTO extends RepresentationModel<TraducaoDTO>{
 
-	private String code;
+	private String codigo;
 
 	private String idioma;
 	

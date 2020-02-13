@@ -106,29 +106,25 @@ public class FilmeController {
 	public ResponseEntity<EntityModel<FilmeDTO>> findOne(@PathVariable("id") final Long id) {
 		Filme entity = service.findById(id).orElseThrow(ResourceNotFoundException::new);
 
-		Link findOneLink = linkTo(methodOn(FilmeController.class).findOne(id)).withSelfRel();
-		Link findAllLink = linkTo(methodOn(FilmeController.class).findAll(null, null, null, null)).withRel("filmes");
-
-		EntityModel<FilmeDTO> model = new EntityModel<>(modelMapper.map(entity, FilmeDTO.class), findOneLink, findAllLink);
-		return ResponseEntity.ok().body(model);
-
+		return ResponseEntity.ok().body(buildEntityModel(entity));
 	}
 	
 	@PostMapping(path="/", consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
 	@Transactional
 	@CacheEvict(value = "filmes", allEntries = true)
-	public ResponseEntity<FilmeDTO> post(@RequestBody @Valid FilmeFormDTO form, UriComponentsBuilder uriBuilder) {
-		Filme filme = modelMapper.map(form, Filme.class);
-		service.save(filme);
+	public ResponseEntity<EntityModel<FilmeDTO>> post(@RequestBody @Valid FilmeFormDTO form, UriComponentsBuilder uriBuilder) {
+		Filme entity = modelMapper.map(form, Filme.class);
+		service.save(entity);
 		
-		URI uri = uriBuilder.path("/filmes/{id}").buildAndExpand(filme.getId()).toUri();
-		return ResponseEntity.created(uri).body(modelMapper.map(filme, FilmeDTO.class));
+		URI uri = uriBuilder.path("/filmes/{id}").buildAndExpand(entity.getId()).toUri();
+		
+		return ResponseEntity.created(uri).body(buildEntityModel(entity));
 	}
 	
 	@PatchMapping(path = "/{id}", consumes = PatchMediaType.APPLICATION_JSON_PATCH_VALUE)
 	@Transactional
 	@CacheEvict(value = "articles", allEntries = true)
-	public ResponseEntity<FilmeDTO> patch(@PathVariable Long id, @RequestBody JsonPatch patchDocument) {
+	public ResponseEntity<EntityModel<FilmeDTO>> patch(@PathVariable Long id, @RequestBody JsonPatch patchDocument) {
 	   
 		Filme entity = service.findById(id).orElseThrow(ResourceNotFoundException::new);
 	    
@@ -139,13 +135,13 @@ public class FilmeController {
 		
 		entity = service.save(entity);
 		
-		return ResponseEntity.ok().body(modelMapper.map(entity, FilmeDTO.class));
+		return ResponseEntity.ok().body(buildEntityModel(entity));
 	}
 	
 	@PatchMapping(path = "/{id}", consumes = {PatchMediaType.APPLICATION_MERGE_PATCH_VALUE})
 	@Transactional
 	@CacheEvict(value = "articles", allEntries = true)
-	public ResponseEntity<FilmeDTO> mergePatch(@PathVariable Long id, @RequestBody JsonMergePatch mergePatchDocument) {
+	public ResponseEntity<EntityModel<FilmeDTO>> mergePatch(@PathVariable Long id, @RequestBody JsonMergePatch mergePatchDocument) {
 		
 		Filme entity = service.findById(id).orElseThrow(ResourceNotFoundException::new);
 
@@ -156,7 +152,7 @@ public class FilmeController {
 		
 		entity = service.save(entity);
 		
-		return ResponseEntity.ok().body(modelMapper.map(entity, FilmeDTO.class));
+		return ResponseEntity.ok().body(buildEntityModel(entity));
 	}
 
 	
@@ -171,6 +167,15 @@ public class FilmeController {
 		}
 		
 		return ResponseEntity.noContent().build();
+	}
+	
+	private EntityModel<FilmeDTO> buildEntityModel(Filme entity){
+
+		Link findOneLink = linkTo(methodOn(FilmeController.class).findOne(entity.getId())).withSelfRel();
+		Link findAllLink = linkTo(methodOn(FilmeController.class).findAll(null, null, null, null)).withRel("filmes");
+		Link findTraducoes = linkTo(methodOn(TraducaoController.class).findAll(entity.getId())).withRel("traducoes");
+
+		return new EntityModel<>(modelMapper.map(entity, FilmeDTO.class), findOneLink, findAllLink, findTraducoes);
 	}
 	
 }

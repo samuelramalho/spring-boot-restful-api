@@ -1,10 +1,8 @@
 package br.com.rs.demo.api.domain;
 
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -15,9 +13,8 @@ import lombok.Setter;
 @NoArgsConstructor @Getter @Setter @EqualsAndHashCode(exclude = {"idioma", "titulo", "poster"})
 public class Traducao {
 
-	@Id
-	@NotEmpty
-	private String code;
+	@EmbeddedId
+	private TraducaoID id;
 
 	@NotEmpty
 	private String idioma;
@@ -26,17 +23,12 @@ public class Traducao {
 	private String titulo;
 
 	private String poster;
-	
-	@ManyToOne
-	@NotNull
-	private Filme filme;
 
-	public Traducao(@NotEmpty String code, @NotEmpty String idioma, @NotEmpty String titulo, Filme filme) {
+	public Traducao(@NotEmpty String code, @NotEmpty String idioma, @NotEmpty String titulo, Long filmeId) {
 		super();
-		this.code = code;
+		this.id = new TraducaoID(code, filmeId);
 		this.idioma = idioma;
 		this.titulo = titulo;
-		this.filme = filme;
 	}
 	
 }

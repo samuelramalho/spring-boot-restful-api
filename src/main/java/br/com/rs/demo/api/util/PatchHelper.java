@@ -27,33 +27,33 @@ public class PatchHelper {
     private final Validator validator;
 
     /**
-     * Performs a JSON Patch operation.
+     * Aplica um patch JSON em um objeto
      *
-     * @param patch      JSON Patch document
-     * @param targetBean object that will be patched
-     * @param beanClass  class of the object the will be patched
+     * @param patch patch JSON
+     * @param bean objeto que será atualizado
+     * @param clazz  classe do objeto que será atualizado
      * @param <T>
-     * @return patched object
+     * @return objeto atualizado
      */
-    public <T> T patch(JsonPatch patch, T targetBean, Class<T> beanClass) {
-        JsonStructure target = mapper.convertValue(targetBean, JsonStructure.class);
+    public <T> T patch(JsonPatch patch, T bean, Class<T> clazz) {
+        JsonStructure target = mapper.convertValue(bean, JsonStructure.class);
         JsonValue patched = applyPatch(patch, target);
-        return convertAndValidate(patched, beanClass);
+        return convertAndValidate(patched, clazz);
     }
 
     /**
-     * Performs a JSON Merge Patch operation
+     * Aplica um merge patch JSON em um objeto
      *
-     * @param mergePatch JSON Merge Patch document
-     * @param targetBean object that will be patched
-     * @param beanClass  class of the object the will be patched
+     * @param patch merge patch JSON
+     * @param bean objeto que será atualizado
+     * @param clazz  classe do objeto que será atualizado
      * @param <T>
-     * @return patched object
+     * @return objeto atualizado
      */
-    public <T> T mergePatch(JsonMergePatch mergePatch, T targetBean, Class<T> beanClass) {
-        JsonValue target = mapper.convertValue(targetBean, JsonValue.class);
-        JsonValue patched = applyMergePatch(mergePatch, target);
-        return convertAndValidate(patched, beanClass);
+    public <T> T mergePatch(JsonMergePatch patch, T bean, Class<T> clazz) {
+        JsonValue target = mapper.convertValue(bean, JsonValue.class);
+        JsonValue patched = applyMergePatch(patch, target);
+        return convertAndValidate(patched, clazz);
     }
 
     private JsonValue applyPatch(JsonPatch patch, JsonStructure target) {

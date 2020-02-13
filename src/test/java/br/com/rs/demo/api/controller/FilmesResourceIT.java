@@ -39,6 +39,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 
 import br.com.rs.demo.api.DemoApplication;
 import br.com.rs.demo.api.http.PatchMediaType;
@@ -58,6 +59,7 @@ public class FilmesResourceIT {
 	private TestRestTemplate restTemplate;
 
 	@Test
+	@Sql({"/sql/filme/delete_all.sql","/sql/filme/load_data.sql"})
 	@DisplayName("Deve retornar uma lista de filmes | HTTP Status 200 ou 206")
 	public void listaPaginada() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
@@ -93,6 +95,7 @@ public class FilmesResourceIT {
 	}
 
 	@Test
+	@Sql({"/sql/filme/delete_all.sql","/sql/filme/load_data.sql"})
 	@DisplayName("Deve retornar uma página específica de uma lista de filmes | HTTP Status 200")
 	public void paginaEspecifica() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
@@ -133,6 +136,7 @@ public class FilmesResourceIT {
 	}
 
 	@Test
+	@Sql({"/sql/filme/delete_all.sql","/sql/filme/load_data.sql"})
 	@DisplayName("Deve retornar uma lista de filmes filtrados por ano | HTTP Status 200")
 	public void listaFiltrada() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
@@ -151,6 +155,7 @@ public class FilmesResourceIT {
 	}
 
 	@Test
+	@Sql({"/sql/filme/delete_all.sql","/sql/filme/load_data.sql"})
 	@DisplayName("Deve retornar uma lista de filmes ordenada por ano | HTTP Status 200")
 	public void listaOrdenada() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
@@ -172,6 +177,7 @@ public class FilmesResourceIT {
 	}
 
 	@Test
+	@Sql("/sql/filme/delete_all.sql")
 	@DisplayName("Deve retornar uma lista vazia | HTTP Status 200")
 	public void listaVazia() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
@@ -179,10 +185,7 @@ public class FilmesResourceIT {
 		
 		final HttpEntity<String> entity = new HttpEntity<String>(null, headers);
 
-		final Map<String, String> param = new HashMap<String, String>();
-		param.put("ano", "2030");
-
-		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_COLLECTION + "?ano={ano}"), HttpMethod.GET, entity, String.class, param);
+		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_COLLECTION), HttpMethod.GET, entity, String.class);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode(), "Teste de HTTP Status Code falhou");
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
@@ -191,6 +194,7 @@ public class FilmesResourceIT {
 
 	@Test
 	@DisplayName("Deve retornar um filme | HTTP Status 200")
+	@Sql({"/sql/filme/delete_all.sql","/sql/filme/create.sql"})
 	public void getResourceReturn200() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
@@ -198,24 +202,25 @@ public class FilmesResourceIT {
 		final HttpEntity<String> entity = new HttpEntity<String>(null, headers);
 
 		final Map<String, String> param = new HashMap<String, String>();
-		param.put("id", "2");
+		param.put("id", "1");
 
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.GET, entity, String.class, param);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode(), "Teste de HTTP Status Code falhou");
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
 		
-		final String expected = jsonFromFile("classpath:json/filme/response-resource-id-2.json");
+		final String expected = jsonFromFile("classpath:json/filme/response-resource.json");
 		JSONAssert.assertEquals("Teste de Response Body falhou", expected, response.getBody(), JSONCompareMode.LENIENT);
-		
+
 		assertThat("Teste de HATEOAS falhou", response.getBody(), allOf(
 				hasJsonPath("$.links[0].rel", is("self")),
-				hasJsonPath("$.links[0].href", endsWith("/filmes/2")),
+				hasJsonPath("$.links[0].href", endsWith("/filmes/1")),
 				hasJsonPath("$.links[1].rel", is("filmes"))
 		));
 	}
 
 	@Test
+	@Sql("/sql/filme/delete_all.sql")
 	@DisplayName("Deve não encontrar um Filme | HTTP Status 404")
 	public void getResourceReturn404() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
@@ -224,7 +229,7 @@ public class FilmesResourceIT {
 		final HttpEntity<String> entity = new HttpEntity<String>(null, headers);
 
 		final Map<String, String> param = new HashMap<String, String>();
-		param.put("id", "200");
+		param.put("id", "1");
 
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.GET, entity, String.class, param);
 
@@ -278,6 +283,7 @@ public class FilmesResourceIT {
 	}
 	
 	@Test
+	@Sql({"/sql/filme/delete_all.sql","/sql/filme/create.sql"})
 	@DisplayName("Deve atualizar parcialmente um Filme com JSON Patch | HTTP Status 200")
 	public void patchResourceReturn200() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
@@ -303,6 +309,7 @@ public class FilmesResourceIT {
 	}
 	
 	@Test
+	@Sql({"/sql/filme/delete_all.sql","/sql/filme/create.sql"})
 	@DisplayName("Deve rejeitar uma atualização com JSON Patch payload inválido | HTTP Status 422")
 	public void patchResourceReturn400() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
@@ -329,6 +336,7 @@ public class FilmesResourceIT {
 	}
 
 	@Test
+	@Sql({"/sql/filme/delete_all.sql","/sql/filme/create.sql"})
 	@DisplayName("Deve atualizar parcialmente um Filme com Merge JSON | HTTP Status 200")
 	public void mergePatchResourceReturn200() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
@@ -354,6 +362,7 @@ public class FilmesResourceIT {
 	}
 
 	@Test
+	@Sql({"/sql/filme/delete_all.sql","/sql/filme/create.sql"})
 	@DisplayName("Deve rejeitar uma atualização com Merge JSON payload inválido | HTTP Status 201")
 	public void mergePatchResourceReturn400() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
@@ -380,13 +389,14 @@ public class FilmesResourceIT {
 	}
 
 	@Test
+	@Sql({"/sql/filme/delete_all.sql","/sql/filme/create.sql"})
 	@DisplayName("Deve excluir um filme | HTTP Status 200")
 	public void deleteReturn204() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		final Map<String, String> param = new HashMap<String, String>();
-		param.put("id", "3");
+		param.put("id", "1");
 
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.DELETE, HttpEntity.EMPTY, String.class, param);
 
