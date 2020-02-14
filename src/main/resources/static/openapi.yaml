@@ -1,0 +1,435 @@
+openapi: 3.0.0
+info:
+  description: |-
+    Demonstração de uma API RESTful em Spring Boot baseada no artigo [Construindo APIs RESTful](https://medium.com/@samuelramalho/construindo-apis-restful-e1ce426c7aa6) 
+
+    [GitHub](https://github.com/samuelramalho/spring-boot-restful-api)
+  version: "1.0.0"
+  title: Spring Boot RESTful
+  termsOfService: 'http://swagger.io/terms/'
+  contact:
+    email: samuelramalho@yahoo.com.br
+    name: Samuel Ramalho
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+servers:
+# Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/samuelramalho/spring-boot-restful/1.0.0
+  - description: Localhost
+    url: https://localhost:8080/
+tags:
+  - name: filme
+    description: 'API de Filmes'
+  - name: tradução
+    description: 'API de Traduçoes de filmes'
+paths:
+  /filmes:
+    get:
+      tags:
+        - filme
+      operationId: findFilmes
+      summary: Lista filmes
+      parameters:
+        - name: ano
+          in: query
+          description: 'Ano de lançamento do filme (filtro)'
+          required: false
+          explode: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/sizeParam'
+        - name: sort
+          in: query
+          description: Ordenação
+          required: false
+          explode: true
+          schema:
+            type: string
+            default: 'ano,desc'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      format: int64
+                      description: 'Identificador do filme'
+                      example: 1
+                    titulo:
+                      type: string
+                      description: 'Título do filme'
+                      example: 'Meu primeiro amor'
+                    ano:
+                      type: integer
+                      format: int64
+                      description: 'Ano de lançamento do filme'
+                      example: 1991
+    post:
+      tags:
+        - filme
+      summary: Adiciona um novo filme
+      operationId: addFilme
+      requestBody:
+        $ref: '#/components/requestBodies/Filme'
+      responses:
+        200:
+          description: 'Filme incluído com sucesso'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Filme'
+        422:
+          description: 'Parâmetros da requisição inválidos'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /filmes/{id}:
+    get:
+      tags:
+        - filme
+      operationId: findFilme
+      summary: Busca um filme
+      parameters:
+        - in: path
+          name: id
+          description: ID do Filme
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 'Filme encontrado'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Filme'
+        '404':
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'            
+    patch:
+      tags:
+        - filme
+      summary: 'Atualiza um filme com suporte a JSON Patch ou JSON Merge Patch'
+      operationId: patchFilme
+      parameters:
+        - in: path
+          name: id
+          description: ID do Filme
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        $ref: '#/components/requestBodies/FilmePatch'
+      responses:
+        200:
+          description: 'Filme atualizado com sucesso'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Filme'
+        422:
+          description: 'Parâmetros da requisição inválidos'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - filme
+      operationId: delFilme
+      summary: Exclui um filme
+      parameters:
+        - in: path
+          name: id
+          description: ID do Filme
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: 'Filme excluído com sucesso'
+  /filmes/{id}/traducoes:
+    get:
+      tags:
+        - tradução
+      operationId: findTraducoes
+      summary: Lista traduções de um filme
+      parameters:
+        - in: path
+          name: id
+          description: ID do Filme
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    codigo:
+                      type: string
+                      description: 'Código da tradução do filme'
+                      example: 'pt-br'
+                    titulo:
+                      type: string
+                      description: 'Título traduzido do filme'
+                      example: 'Meu primeiro amor'
+  /filmes/{id}/traducoes/{codigo}:
+    get:
+      tags:
+        - tradução
+      operationId: findTraducao
+      summary: Busca uma tradução de um filme
+      parameters:
+        - in: path
+          name: id
+          description: ID do Filme
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: codigo
+          description: Código do idioma
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Tradução encontrada'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Traducao'
+        '404':
+          description: 'Tradução não encontrada'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'            
+    put:
+      tags:
+        - tradução
+      summary: 'Inclui ou atualiza uma tradução de um filme'
+      operationId: putTraducao
+      parameters:
+        - in: path
+          name: id
+          description: ID do Filme
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: codigo
+          description: Código do idioma
+          required: true
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/Traducao'
+      responses:
+        200:
+          description: 'Tradução atualizada com sucesso'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Traducao'
+        201:
+          description: 'Tradução incluída com sucesso'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Traducao'
+        422:
+          description: 'Parâmetros da requisição inválidos'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - tradução
+      operationId: delTraducao
+      summary: Exclui uma Tradução
+      parameters:
+        - in: path
+          name: id
+          description: ID do Filme
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: codigo
+          description: Código do idioma
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'Tradução excluída com sucesso'          
+components:
+  schemas:
+    Filme:
+      type: object
+      required:
+        - titulo
+        - ano
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'Identificador do filme'
+          example: 1
+          readOnly: true
+        titulo:
+          type: string
+          description: 'Título do filme'
+          example: 'Meu primeiro amor'
+        ano:
+          type: integer
+          format: int64
+          description: 'Ano de lançamento do filme'
+          example: 1991
+        poster:
+          type: string
+          description: 'URL do poster do filme'
+          example: 'https://image.tmdb.org/t/p/original/4Csti4PTqzJM1lSY1zoFgXyjB8X.jpg'
+        genero:
+          type: string
+          description: 'Gênero do filme'
+          example: 'romance'
+    Traducao:
+      type: object
+      required:
+        - codigo
+        - titulo
+      properties:
+        codigo:
+          type: string
+          description: 'Código da tradução do filme'
+          example: 'pt-br'
+        idioma:
+          type: string
+          description: 'Idioma da tradução do filme'
+          example: 'Português do Brasil' 
+        titulo:
+          type: string
+          description: 'Título traduzido do filme'
+          example: 'Meu primeiro amor'
+        poster:
+          type: string
+          description: 'URL do poster traduzido do filme'
+          example: 'https://image.tmdb.org/t/p/original/4Csti4PTqzJM1lSY1zoFgXyjB8X.jpg'
+    Error:
+      type: object
+      properties:
+        status:
+          type: integer
+          format: int64
+          description: 'Código do status HTTP da resposta'
+        error:
+          type: string
+          description: 'Descrição do status HTTP da resposta'
+        message:
+          type: string
+          description: 'Mensagem de erro'
+        timestamp:
+          type: string
+          format: date-time
+          description: 'Horário da ocorrência do erro'
+        errors:
+          type: array
+          items: {}
+  parameters:
+    pageParam:  
+      in: query
+      name: page
+      description: 'número da página'
+      required: false
+      schema:
+        type: integer
+        format: int32
+        default: 0
+    sizeParam: 
+      in: query
+      name: size
+      description: 'máximo de itens por página'
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 100 
+        default: 5
+  requestBodies:
+    Filme:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Filme'
+    FilmePatch:
+      required: true
+      content:
+        application/json-patch+json:
+          schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - op
+                  - path
+                properties:
+                  op:
+                    type: string
+                    description: 'Operação a ser executada'
+                    enum:
+                    - 'test'
+                    - 'remove'
+                    - 'add'
+                    - 'replace'
+                    - 'move'
+                    - 'copy'
+                    example: 'replace'
+                  path:
+                    type: string
+                    description: 'Destino da operação (path JSON)'
+                    example: '/genero'
+                  value:
+                    type: string
+                    description: 'Valor utilizado na operação'
+                    example: 'aventura'
+        application/merge-patch+json:
+          schema:
+            $ref: '#/components/schemas/Filme'
+    Traducao:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Traducao'

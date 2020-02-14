@@ -12,7 +12,7 @@
 	<artifactId>spring-restful-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Spring Boot RESTful API</name>
-	<description>Demosntração de uma API RESTful em Spring Boot </description>
+	<description>Demosntração de uma API RESTful em Spring Boot</description>
 
 	<properties>
 		<java.version>1.8</java.version>
@@ -87,8 +87,13 @@
 			<artifactId>springdoc-openapi-ui</artifactId>
 			<version>1.2.30</version>
 		</dependency>
-
-
+		
+		<dependency>
+		    <groupId>org.springdoc</groupId>
+		    <artifactId>springdoc-openapi-data-rest</artifactId>
+		    <version>1.2.30</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>

@@ -14,7 +14,7 @@ public class TraducaoDTO extends RepresentationModel<TraducaoDTO>{
 	private String codigo;
 
 	private String idioma;
-	
+
 	private String titulo;
 
 	private String poster;

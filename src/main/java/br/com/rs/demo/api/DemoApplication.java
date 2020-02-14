@@ -1,6 +1,7 @@
 package br.com.rs.demo.api;
 
 import org.modelmapper.ModelMapper;
+import org.springdoc.core.SpringDocConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +19,7 @@ public class DemoApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(DemoApplication.class, args);
 	}
-	
+
 	@Bean
 	public ModelMapper modelMapper() {
 		return new ModelMapper();
@@ -36,6 +37,11 @@ public class DemoApplication {
 	            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 	            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 	            .findAndRegisterModules();
+	}
+	
+	@Bean
+	public SpringDocConfiguration springDocConfiguration(){
+	  return new SpringDocConfiguration();
 	}
 
 }

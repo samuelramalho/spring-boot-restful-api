@@ -29,14 +29,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
 import br.com.rs.demo.api.DemoApplication;
 
 @SpringBootTest(classes = DemoApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Sql({"/sql/traducao/delete.sql","/sql/traducao/load_data.sql"})
-@ActiveProfiles("test")
 @DisplayName("Traduções | testes dos endpoints")
 public class TraducoesResourceIT {
 

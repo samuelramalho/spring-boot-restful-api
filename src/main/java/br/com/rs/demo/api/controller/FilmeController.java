@@ -69,6 +69,7 @@ public class FilmeController {
 	@Autowired
 	private PatchHelper patchHelper;
 
+	
 	@GetMapping(path = "/", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Cacheable(value = "filmes")
 	public ResponseEntity<?> findAll(@RequestParam(value = "ano", required = false) @Valid final Integer ano,
@@ -106,7 +107,7 @@ public class FilmeController {
 
 		return ResponseEntity.ok().body(buildEntityModel(entity));
 	}
-
+	
 	@PostMapping(path = "/", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Transactional
 	@CacheEvict(value = "filmes", allEntries = true)
