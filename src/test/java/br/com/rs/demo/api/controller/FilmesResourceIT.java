@@ -87,8 +87,8 @@ public class FilmesResourceIT {
 		
 		assertThat("Teste de Cache Header falhou", response.getHeaders(), allOf(hasKey(CACHE_CONTROL), hasKey(ETAG)));
 		assertThat("Teste de Response Body falhou", response.getBody(), allOf(
-				hasJsonPath("$.content", hasSize(greaterThan(0))),
-				hasJsonPath("$.content[*].titulo")
+				hasJsonPath("$._embedded.filmes", hasSize(greaterThan(0))),
+				hasJsonPath("$._embedded.filmes[*].titulo")
 		));
 	}
 
@@ -128,8 +128,8 @@ public class FilmesResourceIT {
 		
 		assertThat("Teste de Cache Header falhou", response.getHeaders(), allOf(hasKey(CACHE_CONTROL), hasKey(ETAG)));
 		assertThat("Teste de Response Body falhou", response.getBody(), allOf(
-				hasJsonPath("$.content", hasSize(3)),
-				hasJsonPath("$.content[*].titulo")
+				hasJsonPath("$._embedded.filmes", hasSize(3)),
+				hasJsonPath("$._embedded.filmes[*].titulo")
 		));
 	}
 
@@ -149,7 +149,7 @@ public class FilmesResourceIT {
 
 		assertEquals(HttpStatus.OK, response.getStatusCode(), "Teste de HTTP Status Code falhou");
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
-		assertThat("Teste de Response Body falhou", response.getBody(), hasJsonPath("$.content", hasSize(2)));
+		assertThat("Teste de Response Body falhou", response.getBody(), hasJsonPath("$._embedded.filmes", hasSize(2)));
 	}
 
 	@Test
@@ -169,8 +169,8 @@ public class FilmesResourceIT {
 		assertThat("Teste de HTTP Status Code falhou", response.getStatusCode(), anyOf(is(HttpStatus.OK), is(HttpStatus.PARTIAL_CONTENT)));
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType(), "Teste de Content-Type falhou");
 		assertThat("Teste de Response Body falhou", response.getBody(), allOf(
-				hasJsonPath("$.content[0].titulo", is("Annie Hall")),
-				hasJsonPath("$.content[4].titulo", is("Joker"))
+				hasJsonPath("$._embedded.filmes[0].titulo", is("Annie Hall")),
+				hasJsonPath("$._embedded.filmes[4].titulo", is("Joker"))
 		));
 	}
 
@@ -211,9 +211,10 @@ public class FilmesResourceIT {
 		JSONAssert.assertEquals("Teste de Response Body falhou", expected, response.getBody(), JSONCompareMode.LENIENT);
 
 		assertThat("Teste de HATEOAS falhou", response.getBody(), allOf(
-				hasJsonPath("$.links[0].rel", is("self")),
-				hasJsonPath("$.links[0].href", endsWith("/filmes/1")),
-				hasJsonPath("$.links[1].rel", is("filmes"))
+				hasJsonPath("$._links.self"),
+				hasJsonPath("$._links.self.href", endsWith("/filmes/1")),
+				hasJsonPath("$._links.filmes"),
+				hasJsonPath("$._links.traducoes")
 		));
 	}
 

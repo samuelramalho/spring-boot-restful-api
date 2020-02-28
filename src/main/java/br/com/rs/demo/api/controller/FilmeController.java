@@ -72,7 +72,7 @@ public class FilmeController {
 	
 	@GetMapping(path = "/", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Cacheable(value = "filmes")
-	public ResponseEntity<?> findAll(@RequestParam(value = "ano", required = false) @Valid final Integer ano,
+	public ResponseEntity<?> findAll(@RequestParam(value = "ano", required = false) final Integer ano,
 			@RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
 			@RequestParam(value = "size", defaultValue = "5", required = false) Integer size,
 			@SortDefault(sort = "ano", direction = Direction.DESC) Sort sort) {
