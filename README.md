@@ -1,7 +1,7 @@
 # Spring Boot RESTful API
 Projeto de demonstração de uma API RESTful implementada com Spring Boot.
 
-Este projeto tenta refletir as recomendações abordadas no artigo [Construindo APIs RESTful](https://medium.com/@samuelramalho/construindo-apis-restful-e1ce426c7aa6), em uma API que contemple os 3 níveis de maturidade de Richardson:
+Este projeto tenta refletir as recomendações abordadas no artigo de minha autoria [Construindo APIs RESTful](https://medium.com/@samuelramalho/construindo-apis-restful-e1ce426c7aa6), em uma API que contemple os 3 níveis de maturidade de Richardson:
 - organizada em recursos - **resources**
 - acessível através dos **verbos HTTP**
 - com controles de hipermídia - **HATEOAS**
@@ -12,7 +12,7 @@ Este projeto tenta refletir as recomendações abordadas no artigo [Construindo 
 - Service Layer
 - DTO
 
-Foram utilizados os recusos do framework **Spring** com destaque para:
+Foram utilizados os recursos do framework **Spring** com destaque para:
 - Spring Boot
 - Spring Data JPA
 - Spring Cache
@@ -22,8 +22,6 @@ Além de bibliotecas auxiliáres como:
 - [lombok](https://mvnrepository.com/artifact/org.projectlombok/lombok)
 - [modelmaper](https://mvnrepository.com/artifact/org.modelmapper/modelmapper)
 - [johnzon-core]( https://mvnrepository.com/artifact/org.apache.johnzon/johnzon-core)
-
-
 
 ## Requisitos
 - Java 1.8
