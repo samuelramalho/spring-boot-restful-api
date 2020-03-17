@@ -7,7 +7,7 @@ Este projeto tenta refletir as recomendações abordadas no artigo [Construindo 
 - com controles de hipermídia - **HATEOAS**
 
 ## Implmentação
-### Alguns dos padrões de projeto utilizados
+Alguns dos padrões de projeto utilizados
 - Front Controller
 - DTO
 - Repository
